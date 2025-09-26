@@ -255,7 +255,11 @@
             
             <div class="video-screen" id="videoScreen">
                 <div class="video-container">
-                    <iframe width="100%" height="100%" src="https://www.youtube.com/embed/xvFZjo5PgG0?si=n5IfNUTlvnVSZPB&autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    <div class="video-placeholder" id="videoPlaceholder">
+                        [Video will be embedded here]<br>
+                        <small>Awaiting YouTube URL...</small>
+                    </div>
+                    <iframe id="videoFrame" style="display: none;"></iframe>
                 </div>
             </div>
         </div>
@@ -355,9 +359,39 @@
             setTimeout(() => {
                 loginScreen.style.display = 'none';
                 videoScreen.style.display = 'flex';
+                // Auto-embed the video after successful login
+                embedVideo('https://youtu.be/xvFZjo5PgG0');
             }, 2000);
         }
 
+        // Function to embed YouTube video with proper attributes
+        function embedVideo(videoUrl) {
+            const videoFrame = document.getElementById('videoFrame');
+            const placeholder = document.getElementById('videoPlaceholder');
+            
+            // Extract video ID from various YouTube URL formats
+            let videoId = '';
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const match = videoUrl.match(regex);
+            
+            if (match && match[1]) {
+                videoId = match[1];
+                const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+                
+                // Set proper YouTube embed attributes
+                videoFrame.src = embedUrl;
+                videoFrame.title = "YouTube video player";
+                videoFrame.frameBorder = "0";
+                videoFrame.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+                videoFrame.referrerPolicy = "strict-origin-when-cross-origin";
+                videoFrame.allowFullscreen = true;
+                
+                placeholder.style.display = 'none';
+                videoFrame.style.display = 'block';
+            } else {
+                placeholder.innerHTML = 'Invalid YouTube URL<br><small>Please provide a valid YouTube link</small>';
+            }
+        }
 
         // Input handling
         document.getElementById('codeInput').addEventListener('keypress', function(e) {
@@ -389,6 +423,8 @@
         // Prevent right-click context menu for added security feel
         document.addEventListener('contextmenu', e => e.preventDefault());
 
+        // Make embedVideo available globally for later use
+        window.embedVideo = embedVideo;
     </script>
 </body>
 </html>
